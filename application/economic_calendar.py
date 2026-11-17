@@ -37,6 +37,7 @@ class EconomicCalendar:
         )
         config = json.loads(path.read_text(encoding="utf-8"))
         self.root = Path(config["root"]).resolve(strict=True)
+        self.hourly_path = config.get("tradfi_1h_path", "data/tradfi_1h.db")
         if not self.root.is_dir():
             raise ValueError("connector root must be a directory")
 
@@ -50,7 +51,7 @@ class EconomicCalendar:
     def connection(self, database: str, check=None):
         if database not in TABLES:
             raise PolicyDenied("database is not on the research allowlist")
-        path = self._path(f"data/{database}.db")
+        path = self._path(self.hourly_path if database == "tradfi_1h" else f"data/{database}.db")
         conn = sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=2)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA query_only=ON")
@@ -80,7 +81,7 @@ class EconomicCalendar:
         databases = []
         for name, allowed in TABLES.items():
             try:
-                path = self._path(f"data/{name}.db")
+                path = self._path(self.hourly_path if name == "tradfi_1h" else f"data/{name}.db")
                 with self.connection(name) as conn:
                     schema = [
                         dict(row)
@@ -231,6 +232,6 @@ class EconomicCalendar:
                 "schema_sha256": digest(schema),
                 "bar_timing": "assumed_start_plus_3600",
                 "historical_publication_time_verified": False,
-                "file_bytes_at_capture": self._path("data/tradfi_1h.db").stat().st_size,
+                "file_bytes_at_capture": self._path(self.hourly_path).stat().st_size,
             },
         )

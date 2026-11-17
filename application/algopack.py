@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import ssl
 import time
 from contextlib import contextmanager
@@ -53,10 +54,12 @@ class DownloadSpec(Contract):
 
 def save_json(path: Path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+    reserve = int(os.environ.get("MULTILLM_MIN_FREE_BYTES", "0"))
+    if reserve and shutil.disk_usage(path.parent).free < reserve + len(payload.encode("utf-8")):
+        raise OSError("insufficient free disk space for an atomic research artifact")
     temporary = path.with_name(path.name + "." + uuid4().hex + ".tmp")
-    temporary.write_text(
-        json.dumps(data, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8"
-    )
+    temporary.write_text(payload, encoding="utf-8")
     temporary.replace(path)
 
 

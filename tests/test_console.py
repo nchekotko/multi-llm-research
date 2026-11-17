@@ -60,3 +60,29 @@ def test_restart_marks_running_and_retains_queued(tmp_path):
     restored = {j["id"]: j for j in ConsoleJobs(tmp_path).list()}
     assert restored[running["id"]]["status"] == "interrupted"
     assert restored[queued["id"]]["status"] == "queued"
+
+
+def test_console_can_run_below_reverse_proxy_prefix(tmp_path, monkeypatch):
+    monkeypatch.setenv("MULTILLM_ROOT_PATH", "/signal-lab")
+    app = create_app(tmp_path, demo_config(), token=TOKEN, start_worker=False)
+    with TestClient(app) as client:
+        page = client.get("/signal-lab/")
+        assert page.status_code == 200
+        assert 'href="assets/style.css"' in page.text
+        assert client.get("/signal-lab/assets/app.js").status_code == 200
+        assert client.get("/signal-lab/v1/console/jobs").status_code == 401
+        assert client.get("/signal-lab/v1/console/jobs", headers=HEADERS).status_code == 200
+
+
+def test_disk_reserve_preserves_existing_artifact(tmp_path, monkeypatch):
+    import pytest
+
+    from application.algopack import save_json
+
+    path = tmp_path / "result.json"
+    save_json(path, {"original": True})
+    before = path.read_bytes()
+    monkeypatch.setenv("MULTILLM_MIN_FREE_BYTES", str(2**60))
+    with pytest.raises(OSError):
+        save_json(path, {"replacement": True})
+    assert path.read_bytes() == before

@@ -59,7 +59,7 @@ def create_app(root="var", config: AppConfig | None = None, token: str | None = 
             thread.join(timeout=2)
             console_thread.join(timeout=2)
 
-    app = FastAPI(title="Multi-LLM Core", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="Multi-LLM Core", version="0.1.0", lifespan=lifespan, root_path=os.environ.get("MULTILLM_ROOT_PATH", ""))
     app.state.engine = engine
     security = HTTPBearer(auto_error=False)
 
