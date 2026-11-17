@@ -4,11 +4,12 @@ import threading
 from contextlib import asynccontextmanager
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, ConfigDict, Field
 
+from .browser_session import install_sessions, valid_cookie
 from .config import AppConfig, load_config
 from .contracts import TaskSpec
 from .engine import Engine
@@ -63,9 +64,13 @@ def create_app(root="var", config: AppConfig | None = None, token: str | None = 
     app.state.engine = engine
     security = HTTPBearer(auto_error=False)
 
-    def authorize(credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)]):
+    def authorize(request: Request, credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)]):
+        if valid_cookie(request, token):
+            return
         if credentials is None or not hmac.compare_digest(credentials.credentials.encode(), token.encode()):
             raise HTTPException(status_code=401, detail="bearer token required")
+
+    install_sessions(app, token)
 
     def checked_run(run_id: str):
         try:
