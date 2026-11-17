@@ -96,6 +96,9 @@ class Engine:
             "output_schema": output_type.model_json_schema(),
             "input": data,
         }
+        settings = config.role_settings.get(role)
+        if settings and settings.instructions:
+            base_request["system"] += "\nOperator role guidance (all original constraints remain in force):\n" + settings.instructions
         logical_hash = digest(base_request)
         ensure_no_secrets(base_request)
         retryable_codes = {
@@ -188,7 +191,7 @@ class Engine:
                 )
             reserved = estimate_reservation(model, request)
             call_id = self.store.reserve_call(
-                run_id, node_id, model, request, prompt_hash(prompt_variant or role), reserved, owner
+                run_id, node_id, model, request, digest(base_request["system"]) if settings and settings.instructions else prompt_hash(prompt_variant or role), reserved, owner
             )
             try:
                 result = self.gateway.generate(

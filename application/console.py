@@ -40,6 +40,8 @@ class ConsoleJobs:
         return ordered if limit is None else ordered[:limit]
 
     def submit(self, request):
+        if hasattr(self, "control") and request.kind in {"download", "liquidity", "scan"}:
+            request = request.model_copy(update={"parameters": {**self.control.defaults()[request.kind], **request.parameters}})
         if request.kind in {"download", "liquidity", "scan"}:
             cls = {"download": DownloadSpec, "liquidity": LiquiditySpec, "scan": ScanSpec}[request.kind]
             parameters = cls.model_validate(request.parameters).model_dump(mode="json")
@@ -95,6 +97,9 @@ class ConsoleJobs:
 
 
 def install_console(app, authorize, engine, root):
+    from .module_control import install_modules
+
+    control = install_modules(app, authorize, engine, root)
     assets = Path(__file__).parent / "web"
     app.mount("/assets", StaticFiles(directory=assets), name="console-assets")
 
@@ -103,6 +108,7 @@ def install_console(app, authorize, engine, root):
         return FileResponse(assets / "index.html", headers={"Cache-Control":"no-store"})
 
     jobs = ConsoleJobs(root)
+    jobs.control = control
     app.state.console_jobs = jobs
 
     @app.get("/v1/console/overview", dependencies=[Depends(authorize)])
@@ -125,7 +131,7 @@ def install_console(app, authorize, engine, root):
         models = [{"model":m.model_id,"family":m.family,"provider":m.provider,"roles":[q.role for q in m.qualified if q.passed]}
                   for m in engine.config.models if m.enabled]
         return {"datasets":datasets,"studies":studies,"scans":scans,"runs":runs,"jobs":jobs.list(),"models":models,
-                "qualification_scope":engine.config.qualification_scope,"now":utcnow()}
+                "qualification_scope":engine.config.qualification_scope,"now":utcnow(),"module_defaults":control.defaults(),"settings_revision":control.value["revision"]}
 
     @app.post("/v1/console/jobs", status_code=202, dependencies=[Depends(authorize)])
     def submit_job(request: JobRequest):
@@ -141,8 +147,13 @@ def install_console(app, authorize, engine, root):
     @app.get("/v1/console/templates", dependencies=[Depends(authorize)])
     def templates():
         result = {}
-        for name in ["moex-spread", "algopack-si-download", "algopack-market-download", "algopack-liquidity", "algopack-market-scan"]:
+        for name in ["moex-spread", "moex-spread-openrouter", "algopack-si-download", "algopack-market-download", "algopack-liquidity", "algopack-market-scan"]:
             path = PROJECT / "examples" / (name+".json")
             if path.exists():
                 result[name] = json.loads(path.read_text(encoding="utf-8"))
+        defaults = control.defaults()
+        for name in ["moex-spread", "moex-spread-openrouter"]:
+            if name in result:
+                result[name]["research"].update(defaults["research"])
+                result[name]["limits"].update(defaults["budget"])
         return result

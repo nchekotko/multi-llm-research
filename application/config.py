@@ -107,8 +107,22 @@ class ModelConfig(Contract):
         return self
 
 
+RoleName = Literal["planner", "executor", "reviewer", "reporter"]
+
+
+class RoleSettings(Contract):
+    enabled: bool = True
+    candidate_id: str | None = None
+    max_output_tokens: int | None = Field(default=None, ge=256, le=32768)
+    timeout_seconds: int | None = Field(default=None, ge=1, le=180)
+    temperature: float | None = Field(default=None, ge=0, le=2)
+    reasoning_effort: Literal["low", "medium", "high"] | None = None
+    instructions: str = Field(default="", max_length=6000)
+
+
 class AppConfig(Contract):
     config_version: str = "demo-1"
+    role_settings: dict[RoleName, RoleSettings] = Field(default_factory=dict)
     minimum_quality: float = Field(default=0.8, ge=0, le=1)
     models: list[ModelConfig] = Field(min_length=1)
     allow_same_family_review: bool = False
@@ -121,6 +135,19 @@ class AppConfig(Contract):
         ids = [m.candidate_id for m in self.models]
         if len(set(ids)) != len(ids):
             raise ValueError("duplicate candidate IDs")
+        for role, settings in self.role_settings.items():
+            ensure_no_secrets(settings.model_dump(mode="json"))
+            if settings.candidate_id:
+                model = next((m for m in self.models if m.candidate_id == settings.candidate_id), None)
+                if model is None or not model.enabled or not any(q.role == role and q.passed and q.quality >= self.minimum_quality for q in model.qualified):
+                    raise ValueError("selected model is not qualified for this role")
+                changes = settings.model_dump(exclude_none=True, exclude={"enabled", "candidate_id", "instructions"})
+                ModelConfig.model_validate({**model.model_dump(), **changes})
+            else:
+                changes = settings.model_dump(exclude_none=True, exclude={"enabled", "candidate_id", "instructions"})
+                for model in self.models:
+                    if model.enabled and any(q.role == role and q.passed for q in model.qualified):
+                        ModelConfig.model_validate({**model.model_dump(), **changes})
         return self
 
     def route(
@@ -139,10 +166,14 @@ class AppConfig(Contract):
             or not task.policy.require_human_release
         ):
             raise PolicyDenied("contract pilot allows only low-risk public tasks with human release")
+        settings = self.role_settings.get(role, RoleSettings())
+        if not settings.enabled:
+            raise PolicyDenied(f"module {role} is disabled for new tasks")
         eligible = []
         for candidate in self.models:
             if (
                 not candidate.enabled
+                or (settings.candidate_id is not None and candidate.candidate_id != settings.candidate_id)
                 or candidate.candidate_id in (excluded or set())
                 or candidate.tier < min_tier
             ):
@@ -168,6 +199,8 @@ class AppConfig(Contract):
                 continue
             if q.scope == "contract" and self.qualification_scope != "contract_pilot":
                 continue
+            changes = settings.model_dump(exclude_none=True, exclude={"enabled", "candidate_id", "instructions"})
+            candidate = ModelConfig.model_validate({**candidate.model_dump(), **changes})
             eligible.append(candidate)
         eligible.sort(
             key=lambda c: (c.expected_accepted_cost_usd, c.expected_latency_seconds, c.candidate_id)
