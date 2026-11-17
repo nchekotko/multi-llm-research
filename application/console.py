@@ -34,9 +34,10 @@ class ConsoleJobs:
                 value.update(status="interrupted", error="Сервер перезапущен. Повторите задачу: страницы выгрузки сохранены.")
                 save_json(path, value)
 
-    def list(self):
+    def list(self, limit=100):
         result = [json.loads(p.read_text(encoding="utf-8")) for p in self.root.glob("*.json")]
-        return sorted(result, key=lambda x:x["created_at"], reverse=True)[:100]
+        ordered = sorted(result, key=lambda x:x["created_at"], reverse=True)
+        return ordered if limit is None else ordered[:limit]
 
     def submit(self, request):
         if request.kind in {"download", "liquidity", "scan"}:
@@ -49,7 +50,7 @@ class ConsoleJobs:
                 raise ValueError("invalid identity")
             parameters = {"identity": identity}
         with self.lock:
-            for old in self.list():
+            for old in self.list(limit=None):
                 if old["status"] in {"queued", "running"} and old["kind"] == request.kind and old["parameters"] == parameters:
                     return old
             job = {"id": uuid4().hex, "kind": request.kind, "parameters": parameters,
@@ -59,7 +60,7 @@ class ConsoleJobs:
 
     def work(self, stop):
         while not stop.wait(0.3):
-            pending = [j for j in self.list() if j["status"] == "queued"]
+            pending = [j for j in self.list(limit=None) if j["status"] == "queued"]
             if not pending:
                 continue
             job = pending[-1]
@@ -107,14 +108,14 @@ def install_console(app, authorize, engine, root):
     @app.get("/v1/console/overview", dependencies=[Depends(authorize)])
     def overview():
         datasets, studies, scans = [], [], []
-        for path in sorted((PROJECT / "var/algopack/datasets").glob("*/manifest.json")):
+        for path in sorted((PROJECT / "var/algopack/datasets").glob("*/manifest.json"), key=lambda p:p.stat().st_mtime_ns):
             m = json.loads(path.read_text(encoding="utf-8"))
             datasets.append({k:v for k,v in m.items() if k != "receipts"})
-        for path in sorted((PROJECT / "var/algopack/studies").glob("*/result.json")):
+        for path in sorted((PROJECT / "var/algopack/studies").glob("*/result.json"), key=lambda p:p.stat().st_mtime_ns):
             m = json.loads(path.read_text(encoding="utf-8"))
             studies.append({"id":path.parent.name,"decision":m["decision"],"policy":m["policy"],
                             "results":[{k:v for k,v in r.items() if k not in {"fills","equity"}} for r in m["results"]]})
-        for path in sorted((PROJECT / "var/algopack/scans").glob("*/result.json")):
+        for path in sorted((PROJECT / "var/algopack/scans").glob("*/result.json"), key=lambda p:p.stat().st_mtime_ns):
             m = json.loads(path.read_text(encoding="utf-8"))
             scans.append({"id":path.parent.name, **{k:v for k,v in m.items() if k in {"status","universe_size","events_count","family_counts","exclusions"}}})
         runs = engine.store.list_runs()
