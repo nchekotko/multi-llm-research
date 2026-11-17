@@ -1,0 +1,44 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "summary": {
+      "maxLength": 20000,
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "concerns": {
+      "items": {
+        "maxLength": 20000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Concerns",
+      "type": "array"
+    },
+    "next_experiments": {
+      "items": {
+        "maxLength": 20000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 10,
+      "title": "Next Experiments",
+      "type": "array"
+    }
+  },
+  "required": [
+    "summary",
+    "concerns",
+    "next_experiments"
+  ],
+  "title": "ResearchAssessment",
+  "type": "object"
+}

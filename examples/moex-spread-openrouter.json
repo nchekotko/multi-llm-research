@@ -1,0 +1,59 @@
+{
+  "task_id": "moex_si_calendar_public_review_v1",
+  "task_type": "quant_research",
+  "goal": "Проверить воспроизводимость исследования календарного спреда SiM6/SiU6 и выявить недостающие данные для внутридневного исполнения.",
+  "research": {
+    "strategy": "calendar_spread_zscore",
+    "legs": [
+      {
+        "symbol": "SiM6",
+        "quantity": 1,
+        "point_value_rub": 1,
+        "tick_size": 1
+      },
+      {
+        "symbol": "SiU6",
+        "quantity": -1,
+        "point_value_rub": 1,
+        "tick_size": 1
+      }
+    ],
+    "start": "2026-01-01",
+    "end": "2026-06-15",
+    "test_start": "2026-04-01",
+    "lookback": 60,
+    "entry_z": 2,
+    "exit_z": 0.5,
+    "fee_rub_per_contract": 5,
+    "slippage_ticks": 2,
+    "latency_seconds": 1,
+    "entry_hour_msk": 10,
+    "last_entry_hour_msk": 16,
+    "flatten_hour_msk": 17,
+    "mode": "exploratory",
+    "llm_review": true
+  },
+  "constraints": [
+    "Параметры, стоимость пункта, комиссия и проскальзывание являются заранее заданным сценарием, а не подтверждёнными спецификациями.",
+    "Не использовать непрерывные склеенные фьючерсы, будущие цены, заполнение пропусков или оптимизацию по OOS.",
+    "Отсутствие достоверных котировок, календарей и спецификаций блокирует вывод о пригодности к исполнению."
+  ],
+  "acceptance_criteria": [
+    "Сохранены снимок данных, параметры, журнал сделок, train/OOS и чувствительность к издержкам.",
+    "Локальный replay повторяет расчёт без чтения исходных баз и вызовов моделей."
+  ],
+  "policy": {
+    "classification": "public",
+    "allow_external": true,
+    "allowed_providers": [
+      "openrouter"
+    ],
+    "require_human_release": true
+  },
+  "limits": {
+    "max_cost_usd": "1",
+    "max_calls": 4,
+    "max_seconds": 300,
+    "max_repairs": 1
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "$defs": {
+    "CandidateArtifact": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "artifact_id": {
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "version": {
+          "default": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "uri": {
+          "title": "Uri",
+          "type": "string"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        },
+        "parent_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Parent Ids",
+          "type": "array"
+        },
+        "created_by": {
+          "title": "Created By",
+          "type": "string"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "kind",
+        "uri",
+        "sha256",
+        "parent_ids",
+        "created_by",
+        "created_at"
+      ],
+      "title": "CandidateArtifact",
+      "type": "object"
+    },
+    "RunStatus": {
+      "enum": [
+        "queued",
+        "running",
+        "waiting_approval",
+        "completed",
+        "rejected",
+        "blocked",
+        "cancelled",
+        "budget_exceeded",
+        "provider_unavailable",
+        "validation_failed",
+        "timed_out",
+        "inconclusive"
+      ],
+      "title": "RunStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/RunStatus"
+    },
+    "workflow_version": {
+      "title": "Workflow Version",
+      "type": "string"
+    },
+    "code_version": {
+      "title": "Code Version",
+      "type": "string"
+    },
+    "schema_digest": {
+      "title": "Schema Digest",
+      "type": "string"
+    },
+    "config_sha256": {
+      "title": "Config Sha256",
+      "type": "string"
+    },
+    "task_sha256": {
+      "title": "Task Sha256",
+      "type": "string"
+    },
+    "environment": {
+      "additionalProperties": true,
+      "title": "Environment",
+      "type": "object"
+    },
+    "artifacts": {
+      "items": {
+        "$ref": "#/$defs/CandidateArtifact"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "timeline": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Timeline",
+      "type": "array"
+    },
+    "calls": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Calls",
+      "type": "array"
+    },
+    "approvals": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Approvals",
+      "type": "array"
+    },
+    "accounting": {
+      "additionalProperties": true,
+      "title": "Accounting",
+      "type": "object"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "run_id",
+    "status",
+    "workflow_version",
+    "code_version",
+    "schema_digest",
+    "config_sha256",
+    "task_sha256",
+    "environment",
+    "artifacts",
+    "timeline",
+    "calls",
+    "approvals",
+    "accounting",
+    "limitations"
+  ],
+  "title": "RunManifest",
+  "type": "object"
+}

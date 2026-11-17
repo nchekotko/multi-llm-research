@@ -1,0 +1,175 @@
+{
+  "schema_version": "1.0",
+  "config_version": "demo-1-specialized",
+  "minimum_quality": 0.8,
+  "models": [
+    {
+      "schema_version": "1.0",
+      "candidate_id": "demo_planner",
+      "provider": "demo",
+      "model_id": "deterministic-fixture-v1",
+      "revision": "fixture-v1",
+      "family": "fixture_author",
+      "enabled": true,
+      "api_key_env": "",
+      "input_per_million_usd": "0",
+      "output_per_million_usd": "0",
+      "max_output_tokens": 4096,
+      "max_input_bytes": 100000,
+      "timeout_seconds": 30,
+      "temperature": null,
+      "reasoning_effort": null,
+      "qualified": [
+        {
+          "schema_version": "1.0",
+          "role": "planner",
+          "eval_id": "synthetic-contract-v1",
+          "passed": true,
+          "quality": 1.0,
+          "scope": "domain"
+        }
+      ],
+      "allowed_data": [
+        "public",
+        "internal",
+        "confidential"
+      ],
+      "governance_reviewed": false,
+      "processing_region": "not reviewed",
+      "retention": "not reviewed",
+      "training_use": "not reviewed",
+      "terms_reference": "not reviewed",
+      "expected_accepted_cost_usd": "0",
+      "expected_latency_seconds": 1.0,
+      "tier": 0,
+      "openrouter_routing": null
+    },
+    {
+      "schema_version": "1.0",
+      "candidate_id": "demo_executor",
+      "provider": "demo",
+      "model_id": "deterministic-fixture-v1",
+      "revision": "fixture-v1",
+      "family": "fixture_author",
+      "enabled": true,
+      "api_key_env": "",
+      "input_per_million_usd": "0",
+      "output_per_million_usd": "0",
+      "max_output_tokens": 4096,
+      "max_input_bytes": 100000,
+      "timeout_seconds": 30,
+      "temperature": null,
+      "reasoning_effort": null,
+      "qualified": [
+        {
+          "schema_version": "1.0",
+          "role": "executor",
+          "eval_id": "synthetic-contract-v1",
+          "passed": true,
+          "quality": 1.0,
+          "scope": "domain"
+        }
+      ],
+      "allowed_data": [
+        "public",
+        "internal",
+        "confidential"
+      ],
+      "governance_reviewed": false,
+      "processing_region": "not reviewed",
+      "retention": "not reviewed",
+      "training_use": "not reviewed",
+      "terms_reference": "not reviewed",
+      "expected_accepted_cost_usd": "0",
+      "expected_latency_seconds": 1.0,
+      "tier": 0,
+      "openrouter_routing": null
+    },
+    {
+      "schema_version": "1.0",
+      "candidate_id": "demo_reviewer",
+      "provider": "demo",
+      "model_id": "deterministic-fixture-v1",
+      "revision": "fixture-v1",
+      "family": "fixture_review",
+      "enabled": true,
+      "api_key_env": "",
+      "input_per_million_usd": "0",
+      "output_per_million_usd": "0",
+      "max_output_tokens": 4096,
+      "max_input_bytes": 100000,
+      "timeout_seconds": 30,
+      "temperature": null,
+      "reasoning_effort": null,
+      "qualified": [
+        {
+          "schema_version": "1.0",
+          "role": "reviewer",
+          "eval_id": "synthetic-contract-v1",
+          "passed": true,
+          "quality": 1.0,
+          "scope": "domain"
+        }
+      ],
+      "allowed_data": [
+        "public",
+        "internal",
+        "confidential"
+      ],
+      "governance_reviewed": false,
+      "processing_region": "not reviewed",
+      "retention": "not reviewed",
+      "training_use": "not reviewed",
+      "terms_reference": "not reviewed",
+      "expected_accepted_cost_usd": "0",
+      "expected_latency_seconds": 1.0,
+      "tier": 0,
+      "openrouter_routing": null
+    },
+    {
+      "schema_version": "1.0",
+      "candidate_id": "demo_reporter",
+      "provider": "demo",
+      "model_id": "deterministic-fixture-v1",
+      "revision": "fixture-v1",
+      "family": "fixture_author",
+      "enabled": true,
+      "api_key_env": "",
+      "input_per_million_usd": "0",
+      "output_per_million_usd": "0",
+      "max_output_tokens": 4096,
+      "max_input_bytes": 100000,
+      "timeout_seconds": 30,
+      "temperature": null,
+      "reasoning_effort": null,
+      "qualified": [
+        {
+          "schema_version": "1.0",
+          "role": "reporter",
+          "eval_id": "synthetic-contract-v1",
+          "passed": true,
+          "quality": 1.0,
+          "scope": "domain"
+        }
+      ],
+      "allowed_data": [
+        "public",
+        "internal",
+        "confidential"
+      ],
+      "governance_reviewed": false,
+      "processing_region": "not reviewed",
+      "retention": "not reviewed",
+      "training_use": "not reviewed",
+      "terms_reference": "not reviewed",
+      "expected_accepted_cost_usd": "0",
+      "expected_latency_seconds": 1.0,
+      "tier": 0,
+      "openrouter_routing": null
+    }
+  ],
+  "allow_same_family_review": false,
+  "sandbox_image": "multi-llm-sandbox:local",
+  "sandbox_enabled": false,
+  "qualification_scope": "domain"
+}

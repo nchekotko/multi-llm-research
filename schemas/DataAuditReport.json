@@ -1,0 +1,47 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "reference_only",
+        "blocked"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "statistics": {
+      "additionalProperties": true,
+      "title": "Statistics",
+      "type": "object"
+    },
+    "gaps": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Gaps",
+      "type": "array"
+    },
+    "assumptions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Assumptions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "status",
+    "statistics",
+    "gaps",
+    "assumptions"
+  ],
+  "title": "DataAuditReport",
+  "type": "object"
+}

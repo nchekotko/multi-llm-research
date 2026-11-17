@@ -1,0 +1,115 @@
+{
+  "$defs": {
+    "PlanNode": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "node_id": {
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_-]{0,63}$",
+          "title": "Node Id",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "reader",
+            "executor",
+            "validator",
+            "reviewer",
+            "reporter"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "tools": {
+          "items": {
+            "enum": [
+              "evidence",
+              "aggregate"
+            ],
+            "type": "string"
+          },
+          "title": "Tools",
+          "type": "array"
+        },
+        "output_schema": {
+          "enum": [
+            "EvidenceBundle",
+            "CandidateContent",
+            "ValidationReport",
+            "ReviewReport",
+            "ReportSelection"
+          ],
+          "title": "Output Schema",
+          "type": "string"
+        },
+        "gates": {
+          "items": {
+            "enum": [
+              "schema",
+              "evidence",
+              "numeric_lineage",
+              "independent_review"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Gates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "node_id",
+        "role",
+        "depends_on",
+        "tools",
+        "output_schema",
+        "gates"
+      ],
+      "title": "PlanNode",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/PlanNode"
+      },
+      "maxItems": 5,
+      "minItems": 5,
+      "title": "Nodes",
+      "type": "array"
+    },
+    "rationale": {
+      "maxLength": 20000,
+      "minLength": 1,
+      "title": "Rationale",
+      "type": "string"
+    }
+  },
+  "required": [
+    "nodes",
+    "rationale"
+  ],
+  "title": "ExecutionPlan",
+  "type": "object"
+}

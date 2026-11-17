@@ -1,0 +1,129 @@
+{
+  "$defs": {
+    "Metric": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "metric_id": {
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_-]{0,63}$",
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "operation": {
+          "title": "Operation",
+          "type": "string"
+        },
+        "source_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Ids",
+          "type": "array"
+        },
+        "input_sha256": {
+          "title": "Input Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "metric_id",
+        "value",
+        "unit",
+        "operation",
+        "source_ids",
+        "input_sha256"
+      ],
+      "title": "Metric",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "task_id": {
+      "title": "Task Id",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "pending_approval",
+        "accepted"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "markdown": {
+      "title": "Markdown",
+      "type": "string"
+    },
+    "evidence_refs": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "numeric_lineage": {
+      "items": {
+        "$ref": "#/$defs/Metric"
+      },
+      "title": "Numeric Lineage",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "candidate_artifact_id": {
+      "title": "Candidate Artifact Id",
+      "type": "string"
+    },
+    "validation_artifact_id": {
+      "title": "Validation Artifact Id",
+      "type": "string"
+    },
+    "review_artifact_id": {
+      "title": "Review Artifact Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "task_id",
+    "run_id",
+    "status",
+    "markdown",
+    "evidence_refs",
+    "numeric_lineage",
+    "limitations",
+    "candidate_artifact_id",
+    "validation_artifact_id",
+    "review_artifact_id"
+  ],
+  "title": "FinalPackage",
+  "type": "object"
+}

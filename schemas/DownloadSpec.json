@@ -1,0 +1,49 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "symbols": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Symbols",
+      "type": "array"
+    },
+    "start": {
+      "format": "date",
+      "title": "Start",
+      "type": "string"
+    },
+    "end": {
+      "format": "date",
+      "title": "End",
+      "type": "string"
+    },
+    "products": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 4,
+      "minItems": 1,
+      "title": "Products",
+      "type": "array"
+    },
+    "whole_futures_market": {
+      "default": false,
+      "title": "Whole Futures Market",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "start",
+    "end"
+  ],
+  "title": "DownloadSpec",
+  "type": "object"
+}

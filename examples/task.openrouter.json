@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "task_id": "openrouter_public_sample",
+  "goal": "Составь отчёт по публичному синтетическому источнику и включи зарегистрированный показатель total.",
+  "task_type": "evidence_report",
+  "sources": [
+    {
+      "schema_version": "1.0",
+      "source_id": "synthetic_source",
+      "text": "Synthetic sample: two items cost 10 and 20 units.",
+      "uri": "user-provided",
+      "version": "1",
+      "available_at": "2026-11-15T00:00:00Z",
+      "rights": "Synthetic public test data."
+    }
+  ],
+  "calculations": [
+    {
+      "schema_version": "1.0",
+      "metric_id": "total",
+      "operation": "sum",
+      "values": [
+        "10",
+        "20"
+      ],
+      "unit": "units",
+      "source_ids": [
+        "synthetic_source"
+      ]
+    }
+  ],
+  "constraints": [
+    "Use only the supplied evidence. Return verbatim quotes. Do not invoke external tools."
+  ],
+  "acceptance_criteria": [
+    "The quote matches the supplied source and total is included."
+  ],
+  "risk": "low",
+  "policy": {
+    "schema_version": "1.0",
+    "classification": "public",
+    "allow_external": true,
+    "allowed_providers": [
+      "openrouter"
+    ],
+    "allowed_tools": [
+      "evidence",
+      "aggregate"
+    ],
+    "require_human_release": true
+  },
+  "limits": {
+    "schema_version": "1.0",
+    "max_cost_usd": "2",
+    "max_calls": 4,
+    "max_seconds": 600,
+    "max_repairs": 0,
+    "max_escalations": 0,
+    "transport_retries": 0
+  }
+}

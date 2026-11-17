@@ -1,0 +1,120 @@
+{
+  "$defs": {
+    "HourBar": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "ts": {
+          "minimum": 0,
+          "title": "Ts",
+          "type": "integer"
+        },
+        "available_at": {
+          "minimum": 0,
+          "title": "Available At",
+          "type": "integer"
+        },
+        "open": {
+          "exclusiveMinimum": 0,
+          "title": "Open",
+          "type": "number"
+        },
+        "high": {
+          "exclusiveMinimum": 0,
+          "title": "High",
+          "type": "number"
+        },
+        "low": {
+          "exclusiveMinimum": 0,
+          "title": "Low",
+          "type": "number"
+        },
+        "close": {
+          "exclusiveMinimum": 0,
+          "title": "Close",
+          "type": "number"
+        },
+        "volume": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Volume"
+        }
+      },
+      "required": [
+        "ts",
+        "available_at",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "title": "HourBar",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "connector": {
+      "const": "economic-calendar/tradfi_1h",
+      "default": "economic-calendar/tradfi_1h",
+      "title": "Connector",
+      "type": "string"
+    },
+    "captured_at": {
+      "title": "Captured At",
+      "type": "string"
+    },
+    "query": {
+      "additionalProperties": true,
+      "title": "Query",
+      "type": "object"
+    },
+    "source_metadata": {
+      "additionalProperties": true,
+      "title": "Source Metadata",
+      "type": "object"
+    },
+    "series": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/HourBar"
+        },
+        "type": "array"
+      },
+      "title": "Series",
+      "type": "object"
+    },
+    "content_sha256": {
+      "title": "Content Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "captured_at",
+    "query",
+    "source_metadata",
+    "series",
+    "content_sha256"
+  ],
+  "title": "DatasetSnapshot",
+  "type": "object"
+}

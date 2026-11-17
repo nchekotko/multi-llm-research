@@ -1,0 +1,37 @@
+{
+  "task_id": "demo_supplier_review",
+  "goal": "Подготовить проверяемую сводку по двум поставщикам и посчитать суммарную стоимость предложений.",
+  "sources": [
+    {
+      "source_id": "offer_alpha",
+      "text": "Поставщик Альфа: стоимость 120000 рублей. Срок поставки 10 рабочих дней. Гарантия 12 месяцев.",
+      "uri": "user-provided:offer-alpha",
+      "version": "2026-11-14",
+      "available_at": "2026-11-14T12:00:00+03:00",
+      "rights": "Демонстрационные синтетические данные, разрешены для локальной проверки."
+    },
+    {
+      "source_id": "offer_beta",
+      "text": "Поставщик Бета: стоимость 145000 рублей. Срок поставки 7 рабочих дней. Гарантия 24 месяца.",
+      "uri": "user-provided:offer-beta",
+      "version": "2026-11-14",
+      "available_at": "2026-11-14T12:00:00+03:00",
+      "rights": "Демонстрационные синтетические данные, разрешены для локальной проверки."
+    }
+  ],
+  "calculations": [
+    {"metric_id": "total_offer_cost", "operation": "sum", "values": ["120000", "145000"], "unit": "RUB", "source_ids": ["offer_alpha", "offer_beta"]},
+    {"metric_id": "mean_delivery_days", "operation": "mean", "values": ["10", "7"], "unit": "рабочих дней", "source_ids": ["offer_alpha", "offer_beta"]}
+  ],
+  "constraints": ["Не давать рекомендацию о покупке без проверки условий договора.", "Не отправлять материалы внешним API."],
+  "acceptance_criteria": ["Показаны цитаты обоих источников.", "Сумма цен и средний срок получены программно.", "Указаны ограничения проверки."],
+  "risk": "low",
+  "policy": {
+    "classification": "internal",
+    "allow_external": false,
+    "allowed_providers": ["demo"],
+    "allowed_tools": ["evidence", "aggregate"],
+    "require_human_release": true
+  },
+  "limits": {"max_cost_usd": "0", "max_calls": 12, "max_seconds": 300, "max_repairs": 2, "max_escalations": 1, "transport_retries": 2}
+}

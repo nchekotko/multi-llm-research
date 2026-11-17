@@ -1,0 +1,69 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "engine_version": {
+      "const": "moex-reference/1.0",
+      "default": "moex-reference/1.0",
+      "title": "Engine Version",
+      "type": "string"
+    },
+    "decision": {
+      "enum": [
+        "inconclusive",
+        "blocked"
+      ],
+      "title": "Decision",
+      "type": "string"
+    },
+    "protocol_sha256": {
+      "title": "Protocol Sha256",
+      "type": "string"
+    },
+    "dataset_sha256": {
+      "title": "Dataset Sha256",
+      "type": "string"
+    },
+    "train": {
+      "additionalProperties": true,
+      "title": "Train",
+      "type": "object"
+    },
+    "out_of_sample": {
+      "additionalProperties": true,
+      "title": "Out Of Sample",
+      "type": "object"
+    },
+    "cost_sensitivity": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Cost Sensitivity",
+      "type": "array"
+    },
+    "blockers": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Blockers",
+      "type": "array"
+    }
+  },
+  "required": [
+    "decision",
+    "protocol_sha256",
+    "dataset_sha256",
+    "train",
+    "out_of_sample",
+    "cost_sensitivity",
+    "blockers"
+  ],
+  "title": "BacktestReport",
+  "type": "object"
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "dataset_id": "9dc16fe13bf9343798bfeccce78113e9f8af8fe5d107f0ac4b8fbbf40787feff",
+  "as_of": "2026-11-17T00:00:00+03:00",
+  "publication_buffer_seconds": 60,
+  "min_baseline_observations": 24,
+  "min_baseline_dates": 3,
+  "z_threshold": 3.5,
+  "imbalance_threshold": 0.65,
+  "min_5m_contracts": 20,
+  "max_spread_bps": 50.0,
+  "persistence_intervals": 3,
+  "cooldown_seconds": 1800
+}

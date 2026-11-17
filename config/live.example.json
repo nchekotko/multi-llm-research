@@ -1,0 +1,50 @@
+{
+  "config_version": "pilot-unqualified-1",
+  "minimum_quality": 0.9,
+  "allow_same_family_review": false,
+  "sandbox_enabled": false,
+  "models": [
+    {
+      "candidate_id": "openai_planner_reviewer",
+      "provider": "openai",
+      "model_id": "gpt-6-astra",
+      "revision": "REPLACE_WITH_VERIFIED_REVISION",
+      "family": "openai_reasoning",
+      "enabled": false,
+      "api_key_env": "OPENAI_API_KEY",
+      "qualified": [
+        {"role": "planner", "eval_id": "not-evaluated", "passed": false, "quality": 0},
+        {"role": "reviewer", "eval_id": "not-evaluated", "passed": false, "quality": 0}
+      ],
+      "allowed_data": ["public"],
+      "governance_reviewed": false
+    },
+    {
+      "candidate_id": "anthropic_executor_reporter",
+      "provider": "anthropic",
+      "model_id": "claude-sonnet-5-5",
+      "revision": "REPLACE_WITH_VERIFIED_REVISION",
+      "family": "claude",
+      "enabled": false,
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "qualified": [
+        {"role": "executor", "eval_id": "not-evaluated", "passed": false, "quality": 0},
+        {"role": "reporter", "eval_id": "not-evaluated", "passed": false, "quality": 0}
+      ],
+      "allowed_data": ["public"],
+      "governance_reviewed": false
+    },
+    {
+      "candidate_id": "gemini_optional",
+      "provider": "gemini",
+      "model_id": "gemini-4-argon",
+      "revision": "REPLACE_WITH_VERIFIED_REVISION",
+      "family": "gemini",
+      "enabled": false,
+      "api_key_env": "GEMINI_API_KEY",
+      "qualified": [],
+      "allowed_data": ["public"],
+      "governance_reviewed": false
+    }
+  ]
+}

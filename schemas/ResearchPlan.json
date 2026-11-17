@@ -1,0 +1,265 @@
+{
+  "$defs": {
+    "FuturesLeg": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "symbol": {
+          "pattern": "^[A-Za-z]{1,10}[FGHJKMNQUVXZ][0-9]{1,2}$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "quantity": {
+          "maximum": 100,
+          "minimum": -100,
+          "title": "Quantity",
+          "type": "integer"
+        },
+        "point_value_rub": {
+          "exclusiveMinimum": 0,
+          "maximum": 1000000,
+          "title": "Point Value Rub",
+          "type": "number"
+        },
+        "tick_size": {
+          "exclusiveMinimum": 0,
+          "maximum": 1000000,
+          "title": "Tick Size",
+          "type": "number"
+        }
+      },
+      "required": [
+        "symbol",
+        "quantity",
+        "point_value_rub",
+        "tick_size"
+      ],
+      "title": "FuturesLeg",
+      "type": "object"
+    },
+    "ResearchSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "profile": {
+          "const": "moex_futures_1h_reference",
+          "default": "moex_futures_1h_reference",
+          "title": "Profile",
+          "type": "string"
+        },
+        "strategy": {
+          "enum": [
+            "calendar_spread_zscore",
+            "futures_trend"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "legs": {
+          "items": {
+            "$ref": "#/$defs/FuturesLeg"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Legs",
+          "type": "array"
+        },
+        "start": {
+          "format": "date",
+          "title": "Start",
+          "type": "string"
+        },
+        "end": {
+          "format": "date",
+          "title": "End",
+          "type": "string"
+        },
+        "test_start": {
+          "format": "date",
+          "title": "Test Start",
+          "type": "string"
+        },
+        "lookback": {
+          "default": 60,
+          "maximum": 1000,
+          "minimum": 3,
+          "title": "Lookback",
+          "type": "integer"
+        },
+        "entry_z": {
+          "default": 2,
+          "exclusiveMinimum": 0,
+          "maximum": 10,
+          "title": "Entry Z",
+          "type": "number"
+        },
+        "exit_z": {
+          "default": 0.5,
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Exit Z",
+          "type": "number"
+        },
+        "fee_rub_per_contract": {
+          "default": 5,
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Fee Rub Per Contract",
+          "type": "number"
+        },
+        "slippage_ticks": {
+          "default": 2,
+          "maximum": 10000,
+          "minimum": 0,
+          "title": "Slippage Ticks",
+          "type": "number"
+        },
+        "latency_seconds": {
+          "default": 1,
+          "maximum": 3600,
+          "minimum": 1,
+          "title": "Latency Seconds",
+          "type": "integer"
+        },
+        "entry_hour_msk": {
+          "default": 10,
+          "maximum": 22,
+          "minimum": 0,
+          "title": "Entry Hour Msk",
+          "type": "integer"
+        },
+        "last_entry_hour_msk": {
+          "default": 16,
+          "maximum": 23,
+          "minimum": 1,
+          "title": "Last Entry Hour Msk",
+          "type": "integer"
+        },
+        "flatten_hour_msk": {
+          "default": 17,
+          "maximum": 23,
+          "minimum": 1,
+          "title": "Flatten Hour Msk",
+          "type": "integer"
+        },
+        "mode": {
+          "default": "exploratory",
+          "enum": [
+            "exploratory",
+            "execution"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "hypothesis_id": {
+          "anyOf": [
+            {
+              "pattern": "^hyp_[a-f0-9]{16}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hypothesis Id"
+        },
+        "hypothesis_revision": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hypothesis Revision"
+        },
+        "revisit_reason": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 10,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revisit Reason"
+        },
+        "llm_review": {
+          "default": false,
+          "title": "Llm Review",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "strategy",
+        "legs",
+        "start",
+        "end",
+        "test_start"
+      ],
+      "title": "ResearchSpec",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "engine_version": {
+      "const": "moex-reference/1.0",
+      "default": "moex-reference/1.0",
+      "title": "Engine Version",
+      "type": "string"
+    },
+    "protocol": {
+      "$ref": "#/$defs/ResearchSpec"
+    },
+    "hypothesis": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Hypothesis"
+    },
+    "rules": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Rules",
+      "type": "array"
+    }
+  },
+  "required": [
+    "protocol",
+    "rules"
+  ],
+  "title": "ResearchPlan",
+  "type": "object"
+}

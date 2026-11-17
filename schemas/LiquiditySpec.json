@@ -1,0 +1,94 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "dataset_id": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "source_run_id": {
+      "pattern": "^[a-f0-9]{32}$",
+      "title": "Source Run Id",
+      "type": "string"
+    },
+    "publication_buffer_seconds": {
+      "default": 60,
+      "maximum": 3600,
+      "minimum": 1,
+      "title": "Publication Buffer Seconds",
+      "type": "integer"
+    },
+    "max_quote_age_seconds": {
+      "default": 600,
+      "maximum": 1800,
+      "minimum": 60,
+      "title": "Max Quote Age Seconds",
+      "type": "integer"
+    },
+    "max_depth_fraction": {
+      "default": 0.05,
+      "exclusiveMinimum": 0,
+      "maximum": 0.2,
+      "title": "Max Depth Fraction",
+      "type": "number"
+    },
+    "max_minute_volume_fraction": {
+      "default": 0.01,
+      "exclusiveMinimum": 0,
+      "maximum": 0.1,
+      "title": "Max Minute Volume Fraction",
+      "type": "number"
+    },
+    "fee_rub_per_contract": {
+      "default": 5,
+      "maximum": 1000,
+      "minimum": 0,
+      "title": "Fee Rub Per Contract",
+      "type": "number"
+    },
+    "impact_ticks": {
+      "default": 1,
+      "maximum": 100,
+      "minimum": 0,
+      "title": "Impact Ticks",
+      "type": "number"
+    },
+    "capital_rub": {
+      "default": 1000000,
+      "exclusiveMinimum": 0,
+      "maximum": 1000000000,
+      "title": "Capital Rub",
+      "type": "number"
+    },
+    "size_multipliers": {
+      "items": {
+        "type": "integer"
+      },
+      "maxItems": 5,
+      "minItems": 1,
+      "title": "Size Multipliers",
+      "type": "array"
+    },
+    "cost_multipliers": {
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 3,
+      "minItems": 1,
+      "title": "Cost Multipliers",
+      "type": "array"
+    }
+  },
+  "required": [
+    "dataset_id",
+    "source_run_id"
+  ],
+  "title": "LiquiditySpec",
+  "type": "object"
+}

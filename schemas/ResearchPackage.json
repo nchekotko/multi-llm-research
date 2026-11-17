@@ -1,0 +1,89 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "task_id": {
+      "title": "Task Id",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "status": {
+      "const": "pending_approval",
+      "default": "pending_approval",
+      "title": "Status",
+      "type": "string"
+    },
+    "decision": {
+      "enum": [
+        "inconclusive",
+        "blocked"
+      ],
+      "title": "Decision",
+      "type": "string"
+    },
+    "markdown": {
+      "title": "Markdown",
+      "type": "string"
+    },
+    "plan_artifact_id": {
+      "title": "Plan Artifact Id",
+      "type": "string"
+    },
+    "dataset_artifact_id": {
+      "title": "Dataset Artifact Id",
+      "type": "string"
+    },
+    "audit_artifact_id": {
+      "title": "Audit Artifact Id",
+      "type": "string"
+    },
+    "backtest_artifact_id": {
+      "title": "Backtest Artifact Id",
+      "type": "string"
+    },
+    "assessment_artifact_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Assessment Artifact Id"
+    },
+    "review_artifact_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Review Artifact Id"
+    }
+  },
+  "required": [
+    "task_id",
+    "run_id",
+    "decision",
+    "markdown",
+    "plan_artifact_id",
+    "dataset_artifact_id",
+    "audit_artifact_id",
+    "backtest_artifact_id"
+  ],
+  "title": "ResearchPackage",
+  "type": "object"
+}

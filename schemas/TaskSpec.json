@@ -1,0 +1,563 @@
+{
+  "$defs": {
+    "Calculation": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "metric_id": {
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_-]{0,63}$",
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "operation": {
+          "enum": [
+            "sum",
+            "mean",
+            "min",
+            "max",
+            "count"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "maxItems": 10000,
+          "minItems": 1,
+          "title": "Values",
+          "type": "array"
+        },
+        "unit": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Unit",
+          "type": "string"
+        },
+        "source_ids": {
+          "items": {
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "metric_id",
+        "operation",
+        "values",
+        "source_ids"
+      ],
+      "title": "Calculation",
+      "type": "object"
+    },
+    "DataPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "classification": {
+          "default": "internal",
+          "enum": [
+            "public",
+            "internal",
+            "confidential"
+          ],
+          "title": "Classification",
+          "type": "string"
+        },
+        "allow_external": {
+          "default": false,
+          "title": "Allow External",
+          "type": "boolean"
+        },
+        "allowed_providers": {
+          "items": {
+            "enum": [
+              "demo",
+              "openai",
+              "anthropic",
+              "gemini",
+              "openrouter"
+            ],
+            "type": "string"
+          },
+          "title": "Allowed Providers",
+          "type": "array"
+        },
+        "allowed_tools": {
+          "items": {
+            "enum": [
+              "evidence",
+              "aggregate",
+              "python_sandbox"
+            ],
+            "type": "string"
+          },
+          "title": "Allowed Tools",
+          "type": "array"
+        },
+        "require_human_release": {
+          "default": true,
+          "title": "Require Human Release",
+          "type": "boolean"
+        }
+      },
+      "title": "DataPolicy",
+      "type": "object"
+    },
+    "FuturesLeg": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "symbol": {
+          "pattern": "^[A-Za-z]{1,10}[FGHJKMNQUVXZ][0-9]{1,2}$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "quantity": {
+          "maximum": 100,
+          "minimum": -100,
+          "title": "Quantity",
+          "type": "integer"
+        },
+        "point_value_rub": {
+          "exclusiveMinimum": 0,
+          "maximum": 1000000,
+          "title": "Point Value Rub",
+          "type": "number"
+        },
+        "tick_size": {
+          "exclusiveMinimum": 0,
+          "maximum": 1000000,
+          "title": "Tick Size",
+          "type": "number"
+        }
+      },
+      "required": [
+        "symbol",
+        "quantity",
+        "point_value_rub",
+        "tick_size"
+      ],
+      "title": "FuturesLeg",
+      "type": "object"
+    },
+    "Limits": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "max_cost_usd": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": "1",
+          "title": "Max Cost Usd"
+        },
+        "max_calls": {
+          "default": 12,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Max Calls",
+          "type": "integer"
+        },
+        "max_seconds": {
+          "default": 300,
+          "maximum": 86400,
+          "minimum": 1,
+          "title": "Max Seconds",
+          "type": "integer"
+        },
+        "max_repairs": {
+          "default": 2,
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Max Repairs",
+          "type": "integer"
+        },
+        "max_escalations": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Max Escalations",
+          "type": "integer"
+        },
+        "transport_retries": {
+          "default": 2,
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Transport Retries",
+          "type": "integer"
+        }
+      },
+      "title": "Limits",
+      "type": "object"
+    },
+    "ResearchSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "profile": {
+          "const": "moex_futures_1h_reference",
+          "default": "moex_futures_1h_reference",
+          "title": "Profile",
+          "type": "string"
+        },
+        "strategy": {
+          "enum": [
+            "calendar_spread_zscore",
+            "futures_trend"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "legs": {
+          "items": {
+            "$ref": "#/$defs/FuturesLeg"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Legs",
+          "type": "array"
+        },
+        "start": {
+          "format": "date",
+          "title": "Start",
+          "type": "string"
+        },
+        "end": {
+          "format": "date",
+          "title": "End",
+          "type": "string"
+        },
+        "test_start": {
+          "format": "date",
+          "title": "Test Start",
+          "type": "string"
+        },
+        "lookback": {
+          "default": 60,
+          "maximum": 1000,
+          "minimum": 3,
+          "title": "Lookback",
+          "type": "integer"
+        },
+        "entry_z": {
+          "default": 2,
+          "exclusiveMinimum": 0,
+          "maximum": 10,
+          "title": "Entry Z",
+          "type": "number"
+        },
+        "exit_z": {
+          "default": 0.5,
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Exit Z",
+          "type": "number"
+        },
+        "fee_rub_per_contract": {
+          "default": 5,
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Fee Rub Per Contract",
+          "type": "number"
+        },
+        "slippage_ticks": {
+          "default": 2,
+          "maximum": 10000,
+          "minimum": 0,
+          "title": "Slippage Ticks",
+          "type": "number"
+        },
+        "latency_seconds": {
+          "default": 1,
+          "maximum": 3600,
+          "minimum": 1,
+          "title": "Latency Seconds",
+          "type": "integer"
+        },
+        "entry_hour_msk": {
+          "default": 10,
+          "maximum": 22,
+          "minimum": 0,
+          "title": "Entry Hour Msk",
+          "type": "integer"
+        },
+        "last_entry_hour_msk": {
+          "default": 16,
+          "maximum": 23,
+          "minimum": 1,
+          "title": "Last Entry Hour Msk",
+          "type": "integer"
+        },
+        "flatten_hour_msk": {
+          "default": 17,
+          "maximum": 23,
+          "minimum": 1,
+          "title": "Flatten Hour Msk",
+          "type": "integer"
+        },
+        "mode": {
+          "default": "exploratory",
+          "enum": [
+            "exploratory",
+            "execution"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "hypothesis_id": {
+          "anyOf": [
+            {
+              "pattern": "^hyp_[a-f0-9]{16}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hypothesis Id"
+        },
+        "hypothesis_revision": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hypothesis Revision"
+        },
+        "revisit_reason": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 10,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revisit Reason"
+        },
+        "llm_review": {
+          "default": false,
+          "title": "Llm Review",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "strategy",
+        "legs",
+        "start",
+        "end",
+        "test_start"
+      ],
+      "title": "ResearchSpec",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_id": {
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_-]{0,63}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 20000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "uri": {
+          "default": "user-provided",
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Uri",
+          "type": "string"
+        },
+        "version": {
+          "default": "1",
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        },
+        "available_at": {
+          "format": "date-time",
+          "title": "Available At",
+          "type": "string"
+        },
+        "rights": {
+          "maxLength": 20000,
+          "minLength": 1,
+          "title": "Rights",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "text",
+        "available_at",
+        "rights"
+      ],
+      "title": "Source",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "task_id": {
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_-]{0,63}$",
+      "title": "Task Id",
+      "type": "string"
+    },
+    "goal": {
+      "maxLength": 20000,
+      "minLength": 1,
+      "title": "Goal",
+      "type": "string"
+    },
+    "task_type": {
+      "default": "evidence_report",
+      "enum": [
+        "evidence_report",
+        "quant_research"
+      ],
+      "title": "Task Type",
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/Source"
+      },
+      "maxItems": 50,
+      "title": "Sources",
+      "type": "array"
+    },
+    "research": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ResearchSpec"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "calculations": {
+      "items": {
+        "$ref": "#/$defs/Calculation"
+      },
+      "maxItems": 100,
+      "title": "Calculations",
+      "type": "array"
+    },
+    "constraints": {
+      "items": {
+        "maxLength": 20000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Constraints",
+      "type": "array"
+    },
+    "acceptance_criteria": {
+      "items": {
+        "maxLength": 20000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Acceptance Criteria",
+      "type": "array"
+    },
+    "risk": {
+      "default": "low",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "Risk",
+      "type": "string"
+    },
+    "policy": {
+      "$ref": "#/$defs/DataPolicy"
+    },
+    "limits": {
+      "$ref": "#/$defs/Limits"
+    }
+  },
+  "required": [
+    "goal",
+    "constraints",
+    "acceptance_criteria"
+  ],
+  "title": "TaskSpec",
+  "type": "object"
+}

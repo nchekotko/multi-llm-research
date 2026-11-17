@@ -1,0 +1,13 @@
+{
+  "dataset_id": "17b98b947d4233d7cb892353e8508796b4f42df4af4c967da5c40ca5dc618ba3",
+  "source_run_id": "4299ab733b684ae9a020f8c7f1017d59",
+  "publication_buffer_seconds": 60,
+  "max_quote_age_seconds": 600,
+  "max_depth_fraction": 0.05,
+  "max_minute_volume_fraction": 0.01,
+  "fee_rub_per_contract": 5,
+  "impact_ticks": 1,
+  "capital_rub": 1000000,
+  "size_multipliers": [1, 5, 20],
+  "cost_multipliers": [1, 2]
+}

@@ -1,0 +1,90 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "dataset_id": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "as_of": {
+      "format": "date-time",
+      "title": "As Of",
+      "type": "string"
+    },
+    "publication_buffer_seconds": {
+      "default": 60,
+      "maximum": 3600,
+      "minimum": 1,
+      "title": "Publication Buffer Seconds",
+      "type": "integer"
+    },
+    "min_baseline_observations": {
+      "default": 24,
+      "maximum": 500,
+      "minimum": 12,
+      "title": "Min Baseline Observations",
+      "type": "integer"
+    },
+    "min_baseline_dates": {
+      "default": 3,
+      "maximum": 30,
+      "minimum": 2,
+      "title": "Min Baseline Dates",
+      "type": "integer"
+    },
+    "z_threshold": {
+      "default": 3.5,
+      "maximum": 10,
+      "minimum": 2,
+      "title": "Z Threshold",
+      "type": "number"
+    },
+    "imbalance_threshold": {
+      "default": 0.65,
+      "maximum": 0.95,
+      "minimum": 0.3,
+      "title": "Imbalance Threshold",
+      "type": "number"
+    },
+    "min_5m_contracts": {
+      "default": 20,
+      "maximum": 100000,
+      "minimum": 1,
+      "title": "Min 5M Contracts",
+      "type": "integer"
+    },
+    "max_spread_bps": {
+      "default": 50,
+      "exclusiveMinimum": 0,
+      "maximum": 1000,
+      "title": "Max Spread Bps",
+      "type": "number"
+    },
+    "persistence_intervals": {
+      "default": 3,
+      "maximum": 12,
+      "minimum": 2,
+      "title": "Persistence Intervals",
+      "type": "integer"
+    },
+    "cooldown_seconds": {
+      "default": 1800,
+      "maximum": 86400,
+      "minimum": 300,
+      "title": "Cooldown Seconds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "dataset_id",
+    "as_of"
+  ],
+  "title": "ScanSpec",
+  "type": "object"
+}

@@ -1,0 +1,34 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "claim_ids": {
+      "items": {
+        "pattern": "^[a-zA-Z][a-zA-Z0-9_-]{0,63}$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Claim Ids",
+      "type": "array"
+    },
+    "metric_ids": {
+      "items": {
+        "pattern": "^[a-zA-Z][a-zA-Z0-9_-]{0,63}$",
+        "type": "string"
+      },
+      "title": "Metric Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "claim_ids",
+    "metric_ids"
+  ],
+  "title": "ReportSelection",
+  "type": "object"
+}

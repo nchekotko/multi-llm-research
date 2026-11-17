@@ -1,0 +1,6 @@
+{
+  "symbols": ["SiM6", "SiU6"],
+  "start": "2026-01-01",
+  "end": "2026-06-15",
+  "products": ["candles_1m", "tradestats", "obstats", "orderstats"]
+}
