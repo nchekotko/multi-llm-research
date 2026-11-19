@@ -155,6 +155,10 @@ class OptionsScanner:
             """)
             if not db.execute("SELECT 1 FROM settings LIMIT 1").fetchone():
                 db.execute("INSERT INTO settings VALUES(0,?,?)", (now(), OptionsSettings().model_dump_json()))
+        from .news_reactions import NewsReactions
+
+        self.news = NewsReactions(self)
+        self.base_universe = {}
 
     @contextmanager
     def connect(self):
@@ -229,6 +233,7 @@ class OptionsScanner:
             raise ValueError("discovery_failed")
         payload = record["payload"]
         refs = instruments(payload)
+        self.all_refs = refs
         eligible = [
             r
             for r in refs
@@ -254,6 +259,7 @@ class OptionsScanner:
                 if ref["SECID"] not in chosen and len(chosen) < settings.max_options:
                     chosen.append(ref["SECID"])
         self.universe = {r["SECID"]: r for r in eligible if r["SECID"] in chosen}
+        self.base_universe = dict(self.universe)
         self.discovery_id = self.store_cycle(
             "discovery", {"source": record, "selected": chosen, "version": VERSION}, settings
         )
@@ -269,6 +275,11 @@ class OptionsScanner:
             ):
                 self.discover(source, settings)
                 self.selection_revision = revision
+            try:
+                self.news.poll(self.all_refs, settings, revision)
+            except Exception as exc:
+                self.news.health = {"status": "news_ingestion_error_" + type(exc).__name__}
+            self.universe = {**self.base_universe, **self.news.required_refs()}
             paths = {
                 secid: f"engines/futures/markets/options/boards/ROPD/securities/{secid}/orderbook.json"
                 for secid in self.universe
@@ -306,6 +317,7 @@ class OptionsScanner:
             settings,
         )
         self.evaluate_pending(books, cycle)
+        self.news.observe(books, cycle)
         self.detect(books, settings, revision, cycle)
         self.previous = books
         self.runtime = "collecting"
@@ -599,6 +611,10 @@ def install_options(app, authorize, root):
     @app.get("/v1/options", dependencies=[Depends(authorize)])
     def status():
         return scanner.status()
+
+    @app.get("/v1/options/news", dependencies=[Depends(authorize)])
+    def news():
+        return scanner.news.status()
 
     @app.put("/v1/options/settings", dependencies=[Depends(authorize)])
     def settings(change: SettingsChange):

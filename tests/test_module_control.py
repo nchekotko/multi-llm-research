@@ -42,7 +42,7 @@ def test_module_api_defaults_auth_and_validation(tmp_path):
         assert c.get("/v1/console/modules").status_code == 401
         c.headers.update(HEADERS)
         modules = c.get("/v1/console/modules").json()["modules"]
-        assert len(modules) == 15
+        assert len(modules) == 16
         assert any(m["id"] == "options" and m["selected_model"] is None for m in modules)
         result=c.put("/v1/console/modules/scan",json={"revision":0,"settings":{"z_threshold":4.2}})
         assert result.status_code == 200
