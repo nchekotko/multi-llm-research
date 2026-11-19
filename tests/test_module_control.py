@@ -41,7 +41,9 @@ def test_module_api_defaults_auth_and_validation(tmp_path):
     with TestClient(app) as c:
         assert c.get("/v1/console/modules").status_code == 401
         c.headers.update(HEADERS)
-        assert len(c.get("/v1/console/modules").json()["modules"]) == 14
+        modules = c.get("/v1/console/modules").json()["modules"]
+        assert len(modules) == 15
+        assert any(m["id"] == "options" and m["selected_model"] is None for m in modules)
         result=c.put("/v1/console/modules/scan",json={"revision":0,"settings":{"z_threshold":4.2}})
         assert result.status_code == 200
         request={"kind":"scan","parameters":{"dataset_id":"a"*64,"as_of":"2026-01-01T00:00:00+03:00"}}

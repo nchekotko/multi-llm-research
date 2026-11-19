@@ -51,14 +51,17 @@ def create_app(root="var", config: AppConfig | None = None, token: str | None = 
     async def lifespan(app):
         thread = threading.Thread(target=worker, daemon=True)
         console_thread = threading.Thread(target=app.state.console_jobs.work, args=(stop,), daemon=True)
+        options_thread = threading.Thread(target=app.state.options_scanner.run, args=(stop,), daemon=True)
         if start_worker:
             thread.start()
             console_thread.start()
+            options_thread.start()
         yield
         stop.set()
         if start_worker:
             thread.join(timeout=2)
             console_thread.join(timeout=2)
+            options_thread.join(timeout=2)
 
     app = FastAPI(title="Multi-LLM Core", version="0.1.0", lifespan=lifespan, root_path=os.environ.get("MULTILLM_ROOT_PATH", ""))
     app.state.engine = engine
@@ -283,4 +286,7 @@ def create_app(root="var", config: AppConfig | None = None, token: str | None = 
     from .console import install_console
 
     install_console(app, authorize, engine, root)
+    from .options_scanner import install_options
+
+    install_options(app, authorize, root)
     return app
