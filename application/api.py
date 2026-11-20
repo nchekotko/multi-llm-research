@@ -288,5 +288,8 @@ def create_app(root="var", config: AppConfig | None = None, token: str | None = 
     install_console(app, authorize, engine, root)
     from .options_scanner import install_options
 
-    install_options(app, authorize, root)
+    scanner = install_options(app, authorize, root)
+    from .option_research import install_option_research
+
+    install_option_research(app, authorize, scanner)
     return app

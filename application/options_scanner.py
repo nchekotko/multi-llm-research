@@ -30,6 +30,22 @@ def now():
     return datetime.now(timezone.utc).isoformat()
 
 
+def adjacent_request_order(universe, paths):
+    """Keep an underlying request near its chain without adding requests or relaxing freshness."""
+    groups = {}
+    for secid, ref in universe.items():
+        groups.setdefault(ref["UNDERLYINGASSET"], []).append(secid)
+    ordered = []
+    for underlying, chain in groups.items():
+        middle = len(chain) // 2
+        ordered.extend(chain[:middle])
+        if underlying in paths:
+            ordered.append(underlying)
+        ordered.extend(chain[middle:])
+    ordered.extend(paths)
+    return [(key, paths[key]) for key in dict.fromkeys(ordered) if key in paths]
+
+
 class OptionsSettings(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
     enabled: bool = False
@@ -302,7 +318,7 @@ class OptionsScanner:
                 return secid, result
 
             with ThreadPoolExecutor(max_workers=3) as pool:
-                books = dict(pool.map(get, paths.items()))
+                books = dict(pool.map(get, adjacent_request_order(self.universe, paths)))
         finally:
             source.close()
         cycle = self.store_cycle(
