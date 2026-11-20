@@ -5,7 +5,7 @@ let optionsDirty=false;
 const optionFamilies={european_long_box_40pct_funding:'Длинный бокс',european_reverse_box_zero_interest:'Обратный бокс',european_butterfly:'Бабочка',strike_monotonicity:'Порядок страйков',quote_lag:'Отставание котировки',book_imbalance:'Дисбаланс глубины',liquidity_vacuum:'Провал глубины'};
 const optionStates={signal_expired:'Отклонение исчезло до входа',await_entry:'Ожидает следующего снимка',await_exit:'Ожидает выхода',scenario_complete:'Сценарий рассчитан',cost_incomplete:'Комиссия брокера неизвестна',entry_unobservable:'Вход не наблюдается',exit_unobservable:'Выход не наблюдается'};
 async function optionsPage(){
- const d=await api('/v1/options'), s=d.settings;
+ const d=await api('/v1/options');if(current!=='options')return;const s=d.settings;
  const candidates=d.latest.filter(x=>x.legs);
  const fields=[['interval_seconds','Пауза между циклами, сек.'],['discovery_seconds','Обновление выборки, сек.'],['max_options','Максимум опционных серий'],['broker_rub_per_contract','Брокер, ₽/контракт за сторону (пусто = неизвестно)'],['slippage_ticks','Проскальзывание, тиков за сторону'],['capital_rate_annual','Ставка капитала в год: 0,4 = 40%'],['latency_seconds','Минимальная задержка входа, сек.'],['horizon_seconds','Горизонт закрытия, сек.'],['max_storage_mb','Лимит базы, МБ']];
  $('#content').innerHTML=`<div class="stats">${stat('Сбор',s.enabled?'Включён':'Остановлен',esc(d.runtime),'◎')}${stat('Снимки стаканов',fmt(d.cycles.books),date(d.last_collection),'▤')}${stat('Опционных серий',fmt(d.selected_options),'Ограниченная выборка; не весь рынок','⌁')}${stat('Хранилище',fmt(d.storage_mb,1)+' МБ','Лимит '+s.max_storage_mb+' МБ; без автоудаления','◇')}</div>`+
