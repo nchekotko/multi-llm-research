@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import errno
 import hashlib
 import json
 import os
@@ -23,6 +24,56 @@ from .contracts import Contract, utcnow
 PROJECT = Path(__file__).resolve().parents[1]
 MSK = timezone(timedelta(hours=3))
 PRODUCTS = ("tradestats", "obstats", "orderstats", "candles_1m")
+
+
+# Only these fixed messages may be persisted or displayed; never exception text.
+DOWNLOAD_ERRORS = {
+    "configuration": "Не удалось прочитать настройки AlgoPack. Проверьте конфигурацию источника и доступ к файлу настроек.",
+    "credentials": "Ключ AlgoPack не найден. Настройте ключ в переменной окружения или файле доступа и повторите выгрузку.",
+    "tls_configuration": "Не удалось настроить защищённое соединение. Проверьте доверенные сертификаты в настройках AlgoPack.",
+    "unauthorized": "MOEX не приняла ключ доступа. Проверьте срок действия ключа, обновите его и повторите выгрузку.",
+    "forbidden": "MOEX запретила доступ. Проверьте права ключа и подписку на выбранный продукт AlgoPack.",
+    "rate_limited": "Превышен лимит запросов MOEX. Подождите и повторите выгрузку.",
+    "source_unavailable": "Источник MOEX временно недоступен. Повторите выгрузку позже.",
+    "http_error": "Источник отклонил запрос. Проверьте выбранные инструменты и доступность продукта AlgoPack.",
+    "timeout": "Источник не ответил вовремя. Повторите выгрузку; уже сохранённые страницы будут использованы повторно.",
+    "network": "Не удалось выполнить сетевой запрос. Проверьте подключение, доступность MOEX и настройки доверенных сертификатов.",
+    "invalid_response": "Ответ источника имеет некорректный формат. Нужна проверка формата ответа и адаптера AlgoPack; повтор может использовать тот же кэш.",
+    "scope_mismatch": "Источник вернул данные другого инструмента или дня. Нужна проверка ответа и кэша; такой снимок не сохранён как завершённый.",
+    "duplicate_rows": "В ответе повторяются записи одного инструмента и времени. Нужна проверка данных и кэша перед повторной выгрузкой.",
+    "pagination": "Источник повторил страницу данных. Выгрузка остановлена; нужна проверка пагинации и кэша.",
+    "page_limit": "Достигнут предел страниц. Сократите период или число инструментов и повторите выгрузку.",
+    "cache_integrity": "Не удалось проверить сохранённую страницу. Нужна проверка или восстановление кэша; обычный повтор не устранит проблему.",
+    "snapshot_integrity": "Не удалось проверить сохранённый снимок. Проверьте целостность файлов или восстановите их из резервной копии.",
+    "busy": "Такая выгрузка уже выполняется. Дождитесь её завершения.",
+    "storage_full": "Недостаточно свободного места для сохранения данных. Освободите место с учётом установленного резерва и повторите выгрузку.",
+    "storage_permission": "Нет доступа к файлам данных. Проверьте права на чтение и запись и повторите выгрузку.",
+    "storage": "Не удалось прочитать или сохранить данные. Проверьте доступность диска, свободное место и права доступа.",
+    "unexpected": "Выгрузка остановлена из-за непредвиденной ошибки. Передайте идентификатор задачи разработчику для проверки.",
+}
+
+
+class DownloadError(ValueError):
+    def __init__(self, code, diagnostic):
+        self.code = code
+        super().__init__(diagnostic)
+
+
+def download_failure(exc):
+    """Return an allowlisted code/message pair, independent of provider text."""
+    if isinstance(exc, DownloadError):
+        code = exc.code if exc.code in DOWNLOAD_ERRORS else "unexpected"
+    elif isinstance(exc, httpx.TimeoutException):
+        code = "timeout"
+    elif isinstance(exc, httpx.RequestError):
+        code = "network"
+    elif isinstance(exc, PermissionError):
+        code = "storage_permission"
+    elif isinstance(exc, OSError):
+        code = "storage_full" if exc.errno == errno.ENOSPC else "storage"
+    else:
+        code = "unexpected"
+    return code, DOWNLOAD_ERRORS[code]
 
 
 class DownloadSpec(Contract):
@@ -57,7 +108,7 @@ def save_json(path: Path, data):
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
     reserve = int(os.environ.get("MULTILLM_MIN_FREE_BYTES", "0"))
     if reserve and shutil.disk_usage(path.parent).free < reserve + len(payload.encode("utf-8")):
-        raise OSError("insufficient free disk space for an atomic research artifact")
+        raise OSError(errno.ENOSPC, "insufficient free disk space for an atomic research artifact")
     temporary = path.with_name(path.name + "." + uuid4().hex + ".tmp")
     temporary.write_text(payload, encoding="utf-8")
     temporary.replace(path)
@@ -92,7 +143,7 @@ def job_lock(folder):
 
                 fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         except OSError as exc:
-            raise ValueError("this immutable job is already running") from exc
+            raise DownloadError("busy", "this immutable job is already running") from exc
         try:
             yield
         finally:
@@ -106,19 +157,32 @@ def job_lock(folder):
 class AlgoPack:
     def __init__(self, root=None):
         self.root = Path(root) if root else PROJECT / "var/algopack"
-        config = json.loads((PROJECT / "config/algopack.json").read_text(encoding="utf-8"))
-        key = os.environ.get(config["credential_name"])
+        try:
+            config = json.loads((PROJECT / "config/algopack.json").read_text(encoding="utf-8"))
+            credential_name = config["credential_name"]
+            if not isinstance(credential_name, str) or not credential_name:
+                raise ValueError("invalid credential name")
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise DownloadError("configuration", "invalid AlgoPack configuration") from exc
+        key = os.environ.get(credential_name)
         if not key:
-            for line in Path(config["credential_file"]).read_text(encoding="utf-8-sig").splitlines():
+            try:
+                lines = Path(config["credential_file"]).read_text(encoding="utf-8-sig").splitlines()
+            except (OSError, ValueError, KeyError, TypeError) as exc:
+                raise DownloadError("credentials", "AlgoPack credential file unavailable") from exc
+            for line in lines:
                 name, sep, value = line.strip().partition("=")
                 if sep and name.strip() == config["credential_name"]:
                     key = value.strip().strip('"').strip("'")
                     break
         if not key:
-            raise ValueError("configured AlgoPack credential is missing")
-        ctx = ssl.create_default_context()
-        if config.get("ca_bundle"):
-            ctx.load_verify_locations(cafile=config["ca_bundle"])
+            raise DownloadError("credentials", "configured AlgoPack credential is missing")
+        try:
+            ctx = ssl.create_default_context()
+            if config.get("ca_bundle"):
+                ctx.load_verify_locations(cafile=config["ca_bundle"])
+        except (OSError, ValueError, TypeError) as exc:
+            raise DownloadError("tls_configuration", "invalid AlgoPack TLS configuration") from exc
         self.client = httpx.Client(
             base_url="https://apim.moex.com/iss/",
             verify=ctx,
@@ -140,9 +204,14 @@ class AlgoPack:
         key = digest({"path": path, "params": query})
         cached = self.root / "pages" / (key + ".json")
         if cached.exists():
-            result = json.loads(cached.read_text(encoding="utf-8"))
-            if digest(result["payload"]) != result["payload_sha256"]:
-                raise ValueError("cached AlgoPack page hash mismatch")
+            try:
+                result = json.loads(cached.read_text(encoding="utf-8"))
+                if digest(result["payload"]) != result["payload_sha256"]:
+                    raise ValueError("hash mismatch")
+                if not isinstance(result["payload"], dict):
+                    raise ValueError("invalid payload")
+            except (ValueError, KeyError, TypeError) as exc:
+                raise DownloadError("cache_integrity", "cached AlgoPack page hash mismatch") from exc
             return result
         for attempt in range(3):
             response = self.client.get(path + ".json", params=query)
@@ -150,13 +219,17 @@ class AlgoPack:
                 time.sleep(1 + attempt)
                 continue
             if response.status_code != 200:
-                raise ValueError(f"AlgoPack HTTP {response.status_code}; download incomplete")
+                code = {401: "unauthorized", 403: "forbidden", 429: "rate_limited"}.get(
+                    response.status_code,
+                    "source_unavailable" if response.status_code >= 500 else "http_error",
+                )
+                raise DownloadError(code, f"AlgoPack HTTP {response.status_code}; download incomplete")
             try:
                 payload = response.json()
             except ValueError as exc:
-                raise ValueError("AlgoPack returned non-JSON; access not confirmed") from exc
+                raise DownloadError("invalid_response", "AlgoPack returned non-JSON; access not confirmed") from exc
             if not isinstance(payload, dict):
-                raise ValueError("unexpected AlgoPack response")
+                raise DownloadError("invalid_response", "unexpected AlgoPack response")
             result = {
                 "path": path,
                 "params": query,
@@ -168,7 +241,7 @@ class AlgoPack:
             save_json(cached, result)
             time.sleep(0.06)
             return result
-        raise ValueError("AlgoPack retries exhausted")
+        raise DownloadError("source_unavailable", "AlgoPack retries exhausted")
 
     def table(self, path, block, params, max_pages=1000):
         rows, receipts, seen = [], [], set()
@@ -177,18 +250,27 @@ class AlgoPack:
             page = self.page(path, {**params, "start": offset, "limit": 1000})
             table = page["payload"].get(block)
             if not isinstance(table, dict) or "columns" not in table or "data" not in table:
-                raise ValueError("required AlgoPack table missing")
-            data = table["data"]
+                raise DownloadError("invalid_response", "required AlgoPack table missing")
+            columns, data = table["columns"], table["data"]
+            if (
+                not isinstance(columns, list)
+                or not all(isinstance(name, str) and name for name in columns)
+                or len(columns) != len(set(columns))
+                or not isinstance(data, list)
+                or (data and not columns)
+                or any(not isinstance(row, list) or len(row) != len(columns) for row in data)
+            ):
+                raise DownloadError("invalid_response", "invalid AlgoPack table columns or rows; download incomplete")
             receipts.append({k: v for k, v in page.items() if k != "payload"})
             if not data:
                 return rows, receipts
             fingerprint = digest(data)
             if fingerprint in seen:
-                raise ValueError("AlgoPack pagination repeated a page; refusing incomplete download")
+                raise DownloadError("pagination", "AlgoPack pagination repeated a page; refusing incomplete download")
             seen.add(fingerprint)
-            rows.extend(dict(zip(table["columns"], row, strict=True)) for row in data)
+            rows.extend(dict(zip(columns, row, strict=True)) for row in data)
             offset += len(data)  # server may ignore requested limit; always continue to empty page
-        raise ValueError("AlgoPack page cap reached; narrow query")
+        raise DownloadError("page_limit", "AlgoPack page cap reached; narrow query")
 
     def download(self, spec: DownloadSpec, progress=lambda x: None):
         folder = self.root / "datasets" / digest(spec.model_dump(mode="json"))
@@ -200,8 +282,11 @@ class AlgoPack:
         folder = self.root / "datasets" / identity
         manifest_path = folder / "manifest.json"
         if manifest_path.exists():
-            read_dataset(self.root, identity)
-            return json.loads(manifest_path.read_text(encoding="utf-8"))
+            try:
+                manifest, _ = read_dataset(self.root, identity)
+                return manifest
+            except (ValueError, KeyError, TypeError, FileNotFoundError) as exc:
+                raise DownloadError("snapshot_integrity", "saved AlgoPack snapshot invalid") from exc
         folder.mkdir(parents=True, exist_ok=True)
         plan_path = folder / "request.json"
         if not plan_path.exists():
@@ -235,10 +320,12 @@ class AlgoPack:
                     rows = [dict(row, secid=symbol) for row in rows]
                 for row in rows:
                     observed_date = row["begin"][:10] if product == "candles_1m" else row["tradedate"]
-                    if not str(spec.start) <= observed_date < str(spec.end) or (
-                        symbol and row["secid"] != symbol
+                    if (
+                        not str(spec.start) <= observed_date < str(spec.end)
+                        or (day is not None and observed_date != str(day))
+                        or (symbol and row["secid"] != symbol)
                     ):
-                        raise ValueError("AlgoPack returned rows outside requested instrument/date scope")
+                        raise DownloadError("scope_mismatch", "AlgoPack returned rows outside requested instrument/date scope")
                 all_rows[product].extend(rows)
                 receipts.extend(pages)
                 progress(
@@ -259,7 +346,7 @@ class AlgoPack:
             )
             keys = [(r["secid"], timestamp(r)) for r in rows]
             if len(keys) != len(set(keys)):
-                raise ValueError("duplicate AlgoPack instrument/time rows")
+                raise DownloadError("duplicate_rows", "duplicate AlgoPack instrument/time rows")
             rows.sort(key=lambda r: (timestamp(r), r["secid"]))
             path = folder / (product + ".json")
             save_json(path, rows)

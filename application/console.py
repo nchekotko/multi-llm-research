@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict
 
-from .algopack import PROJECT, AlgoPack, DownloadSpec, save_json
+from .algopack import PROJECT, AlgoPack, DownloadSpec, download_failure, save_json
 from .contracts import utcnow
 from .liquidity import LiquiditySpec, run_liquidity, verify_study
 from .market_scanner import ScanSpec, run_scan, verify_scan
@@ -91,7 +91,11 @@ class ConsoleJobs:
                     result = verify_scan(PROJECT / "var/algopack", params["identity"])
                 job.update(status="completed", result=result)
             except Exception as exc:
-                job.update(status="failed", error=f"{type(exc).__name__}: проверьте конфигурацию источника, параметры и доступность данных.")
+                if job["kind"] == "download":
+                    code, message = download_failure(exc)
+                    job.update(status="failed", error_code=code, error=message)
+                else:
+                    job.update(status="failed", error=f"{type(exc).__name__}: проверьте конфигурацию источника, параметры и доступность данных.")
             job["finished_at"] = utcnow()
             save_json(path, job)
 
